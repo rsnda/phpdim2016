@@ -1,0 +1,24 @@
+{
+    "name": "erjon/phpfram",
+    "description": "A micro PHP framefork",
+    "type": "library",
+    "license": "Unlicence",
+    "authors": [
+        {
+            "name": "Erjon Lamy",
+            "email": "erjon.lamy@outlook.fr"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "alpha",
+    "require": {}
+}

@@ -1,23 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Erjon
- * Date: 06/01/2016
- * Time: 11:37
- */
 
 namespace Framework\Http;
 
-
-abstract class AbstractMessage
+abstract class AbstractMessage implements MessageInterface
 {
-    const HTTP = 'HTTP';
-    const HTTPS = 'HTTPS';
-
-    const VERSION_1_0 = '1.0';
-    const VERSION_1_1 = '1.1';
-    const VERSION_2_0 = '2.0';
-
     protected $scheme;
     protected $schemeVersion;
     protected $headers;
@@ -41,43 +27,6 @@ abstract class AbstractMessage
     {
         return $this->schemeVersion;
     }
-
-    protected function setHeaders(array $headers)
-    {
-        foreach ($headers as $header => $value) {
-            $this->addHeader($header, $value);
-        }
-    }
-
-    public function getHeader($name)
-    {
-        $name = strtolower($name);
-
-        return isset($this->headers[$name]) ? $this->headers[$name] : null;
-    }
-
-    /**
-     * Adds a new normalized header value to the list of all headers.
-     *
-     * @param string $header The HTTP header name
-     * @param string $value  The HTTP header value
-     *
-     * @throws \RuntimeException
-     */
-    private function addHeader($header, $value)
-    {
-        $header = strtolower($header);
-
-        if (isset($this->headers[$header])) {
-            throw new \RuntimeException(sprintf(
-                'Header %s is already defined and cannot be set twice.',
-                $header
-            ));
-        }
-
-        $this->headers[$header] = (string) $value;
-    }
-
 
     public function getHeaders()
     {
@@ -117,8 +66,43 @@ abstract class AbstractMessage
         $this->schemeVersion = $version;
     }
 
-    protected abstract function createPrologue();
+    private function setHeaders(array $headers)
+    {
+        foreach ($headers as $header => $value) {
+            $this->addHeader($header, $value);
+        }
+    }
 
+    public function getHeader($name)
+    {
+        $name = strtolower($name);
+
+        return isset($this->headers[$name]) ? $this->headers[$name] : null;
+    }
+
+    /**
+     * Adds a new normalized header value to the list of all headers.
+     *
+     * @param string $header The HTTP header name
+     * @param string $value  The HTTP header value
+     *
+     * @throws \RuntimeException
+     */
+    private function addHeader($header, $value)
+    {
+        $header = strtolower($header);
+
+        if (isset($this->headers[$header])) {
+            throw new \RuntimeException(sprintf(
+                'Header %s is already defined and cannot be set twice.',
+                $header
+            ));
+        }
+
+        $this->headers[$header] = (string) $value;
+    }
+
+    protected abstract function createPrologue();
 
     /**
      * Returns the Message instance as an HTTP string representation.
@@ -156,4 +140,34 @@ abstract class AbstractMessage
         return $this->getMessage();
     }
 
+    protected static function parseBody($message)
+    {
+        $pos = strpos($message, PHP_EOL.PHP_EOL);
+
+        return (string) substr($message, $pos+2);
+    }
+
+    protected static function parseHeaders($message)
+    {
+        $start = strpos($message, PHP_EOL) + 1;
+        $end = strpos($message, PHP_EOL.PHP_EOL);
+        $length = $end - $start;
+        $lines = explode(PHP_EOL, substr($message, $start, $length));
+
+        $i = 0;
+        $headers = [];
+        while (!empty($lines[$i])) {
+            $line = $lines[$i];
+            $result = preg_match('#^([a-z][a-z0-9-]+)\: (.+)$#i', $line, $header);
+            if (!$result) {
+                throw new MalformedHttpHeaderException(sprintf('Invalid header line at position %u: %s', $i+2, $line));
+            }
+            list(, $name, $value) = $header;
+
+            $headers[$name] = $value;
+            $i++;
+        }
+
+        return $headers;
+    }
 }

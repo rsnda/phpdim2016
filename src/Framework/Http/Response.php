@@ -2,7 +2,7 @@
 
 namespace Framework\Http;
 
-class Response extends AbstractMessage implements ResponseInterface
+class Response extends AbstractMessage implements ResponseInterface, StreamableInterface
 {
     private $statusCode;
 
@@ -32,6 +32,11 @@ class Response extends AbstractMessage implements ResponseInterface
         parent::__construct($scheme, $schemeVersion, $headers, $body);
 
         $this->setStatusCode($statusCode);
+    }
+
+    public static function createFromRequest(MessageInterface $request, $content, $statusCode, $headers = [])
+    {
+        return new self($statusCode, $request->getScheme(), $request->getSchemeVersion(), $headers, $content);
     }
 
     public function getStatusCode()
@@ -87,5 +92,15 @@ class Response extends AbstractMessage implements ResponseInterface
         }
 
         return $matches;
+    }
+
+    public function send()
+    {
+        header($this->createPrologue());
+        foreach ($this->headers as $header) {
+            header((string) $header);
+        }
+
+        echo $this->getBody();
     }
 }

@@ -1,12 +1,12 @@
 {
-    "name": "erjon/phpfram",
-    "description": "A micro PHP framefork",
+    "name": "hhamon/lpdim2016",
+    "description": "Another PHP framework",
     "type": "library",
-    "license": "Unlicence",
+    "license": "proprietary",
     "authors": [
         {
-            "name": "Erjon Lamy",
-            "email": "erjon.lamy@outlook.fr"
+            "name": "Hugo Hamon",
+            "email": "hugo.hamon@sensiolabs.com"
         }
     ],
     "autoload": {
@@ -20,5 +20,7 @@
         }
     },
     "minimum-stability": "alpha",
-    "require": {}
+    "require": {
+        "twig/twig": "^1.23"
+    }
 }
